@@ -68,9 +68,9 @@ def gather_onpage_wikis(soup, goal_term, visted_sites):
                 pass
             else:
                 on_page_links[i.text] = i['href']
-            if goal_term in on_page_links.keys():
-                on_page_links = {i.text : i['href']}
-        return on_page_links
+    if goal_term in on_page_links.keys():
+        on_page_links = {i.text : i['href']}
+    return on_page_links
 
 
 current_page = base_url + base_wiki_page
