@@ -2,10 +2,15 @@ from bs4 import BeautifulSoup
 import urllib2
 import urlparse
 import random
+import sys
+
+base_wiki_page = 'Python'
+goal_term = 'Confiscation'
+
 
 base_url = "http://en.wikipedia.org/wiki/"
-base_wiki_page = "List_of_Python_software"
-goal_term = "Confiscation"
+#base_wiki_page = sys.argv[1]
+#goal_term = sys.argv[2]
 goal_url = base_url + goal_term
 
 def get_page(url):
@@ -55,16 +60,24 @@ def gather_onpage_wikis(soup, goal_term, visted_sites):
         Grabs 'a' - hrefs from the wiki page and chucks them into 
     """
     on_page_links = {}
-    for i in soup.findAll('a', href=True):
-        on_page_links[i.text] = i['href']
-        if goal_term in on_page_links.keys():
-            on_page_links = {i.text : i['href']}
-    return on_page_links
+    page_content = soup('div', {'id':'bodyContent'})
+    for bodyContent in page_content:
+        links = bodyContent.findAll('a', href=True)
+        for i in links:
+            if i.text in visted_sites.keys():
+                pass
+            else:
+                on_page_links[i.text] = i['href']
+            if goal_term in on_page_links.keys():
+                on_page_links = {i.text : i['href']}
+        return on_page_links
 
 
 current_page = base_url + base_wiki_page
 visted_sites = {}
 count = 1
+print "Start: %r (URL: %r)" % (base_url, base_url + base_wiki_page)
+print "Goal: %r (URL: %r)" % (goal_term, base_url + goal_term)
 print "IT BEGINS:\n*********************************************\n" 
 
 while True:
