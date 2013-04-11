@@ -3,6 +3,7 @@ import urllib2
 import urlparse
 import random
 import sys
+import socket
 
 base_wiki_page = 'Python'
 goal_term = 'Confiscation'
@@ -17,15 +18,34 @@ def get_page(url):
     """
         Grabs the current page file
     """
+    error_count = 0
     request = urllib2.Request(url, None, {'User-Agent':'Mosilla/5.0 (Macintosh; Intel Mac OS X 10_7_4) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11'})
-    page_file = urllib2.urlopen(request)
-    return page_file
+    while True:
+        try:
+            page_file = urllib2.urlopen(url=request,timeout=1)
+        except urllib2.URLError, e:
+            if error_count <=5:
+                print("There was an error: %r" % e)
+                error_count += 1
+            else:
+                print "Unable to get file %r" % url
+                sys.exit(1)
+        except socket.timeout, e:
+            if error_count <=5:
+                print ("There was an error: %r" % e)
+                error_count += 1
+            else:
+                print "Unable to get file %r" % url
+                sys.exit(1)
+        else:
+            return page_file
+            break
 
-def check_wiki(goal_page, visted_sites):
+def check_wiki(goal_page, visited_sites):
     """
         Checks if page has already been visited.
     """
-    if goal_page in visted_sites:
+    if goal_page in visited_sites:
         return True
     else:
         return False
@@ -55,7 +75,7 @@ def get_next_link(page_links, base_url, base_wiki_page):
         else:
             return base_url + base_wiki_page
 
-def gather_onpage_wikis(soup, goal_term, visted_sites):
+def gather_onpage_wikis(soup, base_url ,goal_term, visited_sites):
     """
         Grabs 'a' - hrefs from the wiki page and chucks them into 
     """
@@ -64,17 +84,17 @@ def gather_onpage_wikis(soup, goal_term, visted_sites):
     for bodyContent in page_content:
         links = bodyContent.findAll('a', href=True)
         for i in links:
-            if i.text in visted_sites.keys():
+            if i.text in visited_sites.keys():
                 pass
             else:
                 on_page_links[i.text] = i['href']
     if goal_term in on_page_links.keys():
-        on_page_links = {i.text : i['href']}
+        on_page_links = {goal_term : base_url}
     return on_page_links
 
 
 current_page = base_url + base_wiki_page
-visted_sites = {}
+visited_sites = {}
 count = 1
 print "Start: %r (URL: %r)" % (base_wiki_page, base_url + base_wiki_page)
 print "Goal: %r (URL: %r)" % (goal_term, base_url + goal_term)
@@ -88,9 +108,9 @@ while True:
     else:
         print "Attempt #%r - Trying:\t%r" % (count, current_page)
         title = current_page.split("http://en.wikipedia.org/wiki/")[1]
-        visted_sites[title] = current_page
+        visited_sites[title] = current_page
         count += 1
-        temp_link_dict = gather_onpage_wikis(soup, goal_term, visted_sites)
+        temp_link_dict = gather_onpage_wikis(soup, base_url, goal_term, visited_sites)
         try:
             next_page = get_next_link(temp_link_dict.values(), base_url, base_wiki_page)
         except ValueError:
