@@ -76,7 +76,7 @@ def gather_onpage_wikis(soup, goal_term, visted_sites):
 current_page = base_url + base_wiki_page
 visted_sites = {}
 count = 1
-print "Start: %r (URL: %r)" % (base_url, base_url + base_wiki_page)
+print "Start: %r (URL: %r)" % (base_wiki_page, base_url + base_wiki_page)
 print "Goal: %r (URL: %r)" % (goal_term, base_url + goal_term)
 print "IT BEGINS:\n*********************************************\n" 
 
@@ -91,8 +91,14 @@ while True:
         visted_sites[title] = current_page
         count += 1
         temp_link_dict = gather_onpage_wikis(soup, goal_term, visted_sites)
-        next_page = get_next_link(temp_link_dict.values(), base_url, base_wiki_page)
-        if next_page == goal_url:
-            print "Found it! %r took %r clicks (URL: %r)" % (title, count, next_page)
+        try:
+            next_page = get_next_link(temp_link_dict.values(), base_url, base_wiki_page)
+        except ValueError:
+            print "Attempt failed"
+            pass
         else:
-            current_page = next_page
+            if next_page == goal_url:
+                print "Found it! %r took %r clicks (URL: %r)" % (title, count, next_page)
+                break
+            else:
+                current_page = next_page
