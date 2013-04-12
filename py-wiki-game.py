@@ -45,10 +45,7 @@ def check_wiki(goal_page, visited_sites):
     """
         Checks if page has already been visited.
     """
-    if goal_page in visited_sites:
-        return True
-    else:
-        return False
+    return goal_page in visited_sites
 
 def get_next_link(page_links, base_url, base_wiki_page):
     """
@@ -109,6 +106,7 @@ while True:
         print "Attempt #%r - Trying:\t%r" % (count, current_page)
         title = current_page.split("http://en.wikipedia.org/wiki/")[1]
         visited_sites[title] = current_page
+        # Counter - counts number of attempts to get from start to end
         count += 1
         temp_link_dict = gather_onpage_wikis(soup, base_url, goal_term, visited_sites)
         try:
